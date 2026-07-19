@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YNW BOX Sports - بث المباريات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Cairo', sans-serif; background: #0a0a0f; color: #fff; }
+  .text-gradient { background: linear-gradient(135deg, #22c55e, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .glass { background: rgba(26,26,46,0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+  .live-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+  .match-card { background: linear-gradient(145deg,#1a1a2e,#12121a); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; transition: all 0.3s; }
+  .match-card:hover { transform: translateY(-4px); border-color: rgba(34,197,94,0.3); box-shadow: 0 20px 40px rgba(34,197,94,0.1); }
+  .video-container { position: relative; background: #000; border-radius: 16px; overflow: hidden; }
+  .control-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; background: linear-gradient(transparent,rgba(0,0,0,0.9)); opacity: 0; transition: opacity 0.3s; }
+  .video-container:hover .control-bar { opacity: 1; }
+  .progress-bar { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg,#22c55e,#4ade80); border-radius: 2px; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0a0a0f; }
+  ::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 2px; }
+  .admin-form input, .admin-form select, .admin-form textarea {
+    width: 100%; padding: 12px 16px; border-radius: 12px; background: #12121a;
+    border: 1px solid rgba(255,255,255,0.1); color: #fff; font-family: 'Cairo', sans-serif;
+    margin-bottom: 12px; outline: none;
+  }
+  .admin-form input:focus, .admin-form select:focus, .admin-form textarea:focus { border-color: #22c55e; }
+  .btn-primary { background: #22c55e; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+  .btn-primary:hover { background: #16a34a; }
+  .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass" style="background: rgba(18,18,26,0.9)">
+  <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
+    <div class="flex items-center gap-2" onclick="showPage('home')" style="cursor:pointer">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg,#22c55e,#16a34a)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+      </div>
+      <div>
+        <span class="text-lg font-bold text-gradient">YNW BOX</span>
+        <span class="text-[10px] text-gray-400 block -mt-1">SPORTS</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="showPage('home')" class="px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition">الرئيسية</button>
+      <button onclick="showPage('admin')" class="px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition">لوحة التحكم</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Home Page -->
+<div id="page-home" class="pt-20 pb-12 px-4 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    <!-- Hero -->
+    <div class="text-center mb-12 pt-8">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-2.072-2.143-3.5-2.143-2.5 0-3.5 1.5-3.5 3.5 0 2.5 1.5 4 3.5 4z"/><path d="M12.5 14.5c2 0 3.5-1.5 3.5-4 0-2-1-3.5-3.5-3.5-1.5 0-2.5.5-3.5 2.143"/></svg>
+        <span class="text-sm font-medium" style="color: #4ade80">بث مباشر بدون تقطيع</span>
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-black mb-4">
+        <span class="text-gradient">YNW BOX</span><br>
+        <span class="text-white">بث المباريات المباشر</span>
+      </h1>
+      <p class="text-gray-400 text-lg max-w-xl mx-auto">شاهد أهم المباريات الرياضية من جميع الدوريات العالمية بجودة عالية</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-3 max-w-lg mx-auto mb-12">
+      <div class="glass rounded-2xl p-4 text-center">
+        <div class="text-2xl font-black text-white" id="stat-live">0</div>
+        <div class="text-xs text-gray-500">مباشر</div>
+      </div>
+      <div class="glass rounded-2xl p-4 text-center">
+        <div class="text-2xl font-black text-white" id="stat-upcoming">0</div>
+        <div class="text-xs text-gray-500">قريباً</div>
+      </div>
+      <div class="glass rounded-2xl p-4 text-center">
+        <div class="text-2xl font-black text-white" id="stat-total">0</div>
+        <div class="text-xs text-gray-500">الكل</div>
+      </div>
+    </div>
+
+    <!-- Live Matches -->
+    <div id="section-live" class="mb-10 hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="live-dot"></div>
+        <h2 class="text-xl font-bold text-white">مباريات مباشرة الآن</h2>
+        <div class="flex-1 h-px" style="background: linear-gradient(90deg,rgba(239,68,68,0.3),transparent)"></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-live"></div>
+    </div>
+
+    <!-- Upcoming Matches -->
+    <div id="section-upcoming" class="mb-10 hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>
+        <h2 class="text-xl font-bold text-white">مباريات قريبة</h2>
+        <div class="flex-1 h-px" style="background: linear-gradient(90deg,rgba(250,204,21,0.3),transparent)"></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-upcoming"></div>
+    </div>
+
+    <!-- All Matches -->
+    <div class="mb-10">
+      <div class="flex items-center gap-3 mb-6">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        <h2 class="text-xl font-bold text-white">جميع المباريات</h2>
+        <div class="flex-1 h-px" style="background: linear-gradient(90deg,rgba(34,197,94,0.3),transparent)"></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-all"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Watch Page -->
+<div id="page-watch" class="pt-20 pb-12 px-4 min-h-screen hidden">
+  <div class="max-w-5xl mx-auto">
+    <button onclick="showPage('home')" class="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      <span>العودة للرئيسية</span>
+    </button>
+
+    <div class="video-container mb-6" id="video-wrapper">
+      <video id="main-video" class="w-full" style="aspect-ratio: 16/9;" playsinline preload="auto"></video>
+
+      <!-- Loading -->
+      <div id="video-loading" class="absolute inset-0 flex flex-col items-center justify-center" style="background: rgba(0,0,0,0.8); z-index: 20;">
+        <div class="w-12 h-12 border-2 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-gray-400 text-sm">جاري تحميل البث...</p>
+      </div>
+
+      <!-- Error -->
+      <div id="video-error" class="absolute inset-0 flex flex-col items-center justify-center hidden" style="background: rgba(0,0,0,0.95); z-index: 30;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p class="text-white font-bold text-lg mt-4 mb-2">خطأ في البث</p>
+        <p class="text-gray-400 text-sm mb-6 text-center">تعذر تشغيل البث. جرب رابطاً بديلاً.</p>
+        <div class="flex gap-3">
+          <button onclick="retryVideo()" class="btn-primary flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            إعادة المحاولة
+          </button>
+          <button onclick="useBackup()" id="btn-backup" class="btn-secondary hidden">رابط بديل</button>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="control-bar">
+        <div class="progress-bar mb-3" onclick="seekVideo(event)">
+          <div class="progress-fill" id="video-progress" style="width: 0%"></div>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <button onclick="togglePlay()" class="p-2 rounded-lg hover:bg-white/10">
+              <svg id="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2"><polygon points="5 3 19 12 5 21"/></svg>
+              <svg id="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+            <button onclick="toggleMute()" class="p-2 rounded-lg hover:bg-white/10">
+              <svg id="icon-vol" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+            <span class="text-xs text-white/60" id="video-time">00:00 / 00:00</span>
+          </div>
+          <button onclick="toggleFullscreen()" class="p-2 rounded-lg hover:bg-white/10">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6" id="match-info"></div>
+  </div>
+</div>
+
+<!-- Admin Page -->
+<div id="page-admin" class="pt-20 pb-12 px-4 min-h-screen hidden">
+  <div class="max-w-4xl mx-auto">
+    <!-- Login -->
+    <div id="admin-login" class="max-w-md mx-auto mt-20">
+      <div class="glass rounded-2xl p-8 text-center">
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background: rgba(34,197,94,0.2)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-2">لوحة التحكم</h2>
+        <p class="text-gray-400 text-sm mb-6">أدخل كلمة المرور للوصول</p>
+        <input type="password" id="admin-password" placeholder="كلمة المرور" class="w-full px-4 py-3 rounded-xl text-center mb-4" style="background: #12121a; border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+        <p id="login-error" class="text-red-400 text-sm mb-4 hidden">كلمة المرور غير صحيحة</p>
+        <button onclick="adminLogin()" class="btn-primary w-full">دخول</button>
+      </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-2xl font-bold text-white">لوحة التحكم</h1>
+          <p class="text-gray-400 text-sm">إدارة المباريات والبثوث</p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="showAddForm()" class="btn-primary flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            إضافة مباراة
+          </button>
+          <button onclick="adminLogout()" class="btn-secondary">خروج</button>
+        </div>
+      </div>
+
+      <!-- Add Form -->
+      <div id="add-form" class="glass rounded-2xl p-6 mb-8 hidden">
+        <h3 class="text-lg font-bold text-white mb-4">إضافة مباراة جديدة</h3>
+        <div class="admin-form">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="form-team1" placeholder="الفريق الأول *" required>
+            <input type="text" id="form-team2" placeholder="الفريق الثاني *" required>
+          </div>
+          <input type="text" id="form-league" placeholder="الدوري *" required>
+          <input type="url" id="form-stream" placeholder="رابط البث الرئيسي (m3u8, mp4...) *" required>
+          <input type="url" id="form-backup" placeholder="رابط البث الاحتياطي (اختياري)">
+          <div class="grid grid-cols-2 gap-3">
+            <select id="form-type">
+              <option value="hls">HLS (.m3u8)</option>
+              <option value="mp4">MP4</option>
+              <option value="direct">رابط مباشر</option>
+              <option value="iframe">iFrame</option>
+            </select>
+            <select id="form-status">
+              <option value="live">مباشر</option>
+              <option value="upcoming">قريباً</option>
+              <option value="ended">منتهية</option>
+            </select>
+          </div>
+          <input type="datetime-local" id="form-time" required>
+          <input type="text" id="form-quality" placeholder="الجودات: 720p, 1080p, 4K">
+          <input type="url" id="form-thumb" placeholder="رابط الصورة المصغرة">
+          <textarea id="form-desc" rows="2" placeholder="وصف المباراة"></textarea>
+          <div class="flex gap-3">
+            <button onclick="saveMatch()" class="btn-primary">حفظ المباراة</button>
+            <button onclick="hideAddForm()" class="btn-secondary">إلغاء</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Matches List -->
+      <h3 class="text-lg font-bold text-white mb-4">قائمة المباريات</h3>
+      <div id="admin-matches-list" class="space-y-3"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== DATA ==========
+let matches = JSON.parse(localStorage.getItem('ynw_matches') || '[]');
+
+const DEFAULT_MATCHES = [
+  {
+    id: '1', title: 'ريال مدريد vs برشلونة',
+    team1: 'ريال مدريد', team2: 'برشلونة',
+    team1_logo: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+    team2_logo: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
+    league: 'الدوري الإسباني',
+    stream_url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+    stream_url_backup: 'https://test-streams.mux.dev/test_001/stream.m3u8',
+    stream_type: 'hls', status: 'live',
+    start_time: new Date().toISOString(),
+    thumbnail: 'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=640',
+    description: 'كلاسيكو العالم', quality: ['720p','1080p'], viewers: 15420
+  },
+  {
+    id: '2', title: 'مانشستر سيتي vs ليفربول',
+    team1: 'مانشستر سيتي', team2: 'ليفربول',
+    league: 'البريميرليج',
+    stream_url: 'https://test-streams.mux.dev/test_001/stream.m3u8',
+    stream_type: 'hls', status: 'upcoming',
+    start_time: new Date(Date.now()+86400000).toISOString(),
+    thumbnail: 'https://images.unsplash.com/photo-1522778119026-d647f0565c6a?w=640',
+    description: 'قمة الجولة', quality: ['720p','1080p','4K'], viewers: 0
+  },
+  {
+    id: '3', title: 'النصر vs الهلال',
+    team1: 'النصر', team2: 'الهلال',
+    league: 'دوري روشن السعودي',
+    stream_url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+    stream_type: 'hls', status: 'live',
+    start_time: new Date().toISOString(),
+    thumbnail: 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=640',
+    description: 'ديربي الرياض', quality: ['720p'], viewers: 8920
+  }
+];
+
+function getAllMatches() {
+  return [...DEFAULT_MATCHES, ...matches];
+}
+
+function getMatchesByStatus(status) {
+  return getAllMatches().filter(m => m.status === status);
+}
+
+function getMatchById(id) {
+  return getAllMatches().find(m => m.id === id);
+}
+
+// ========== PAGES ==========
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('page-' + page).classList.remove('hidden');
+  window.scrollTo(0, 0);
+  if (page === 'home') renderHome();
+  if (page === 'admin') renderAdmin();
+}
+
+// ========== HOME ==========
+function renderHome() {
+  const all = getAllMatches();
+  const live = getMatchesByStatus('live');
+  const upcoming = getMatchesByStatus('upcoming');
+
+  document.getElementById('stat-live').textContent = live.length;
+  document.getElementById('stat-upcoming').textContent = upcoming.length;
+  document.getElementById('stat-total').textContent = all.length;
+
+  document.getElementById('section-live').classList.toggle('hidden', live.length === 0);
+  document.getElementById('section-upcoming').classList.toggle('hidden', upcoming.length === 0);
+
+  renderGrid('grid-live', live);
+  renderGrid('grid-upcoming', upcoming);
+  renderGrid('grid-all', all);
+}
+
+function renderGrid(gridId, matchList) {
+  const grid = document.getElementById(gridId);
+  if (!matchList.length) { grid.innerHTML = '<p class="text-gray-500 text-center py-8">لا توجد مباريات</p>'; return; }
+
+  grid.innerHTML = matchList.map(m => `
+    <div class="match-card cursor-pointer" onclick="watchMatch('${m.id}')">
+      <div class="relative aspect-video">
+        <img src="${m.thumbnail || 'https://placehold.co/640x360/1a1a2e/22c55e?text=' + encodeURIComponent(m.team1 + ' vs ' + m.team2)}" 
+             class="w-full h-full object-cover" loading="lazy" alt="${m.title}">
+        <div class="absolute inset-0" style="background: linear-gradient(180deg,transparent 0%,rgba(0,0,0,0.8) 100%)"></div>
+        ${m.status === 'live' ? `<div class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/90 text-white text-xs font-bold"><span class="live-dot"></span>مباشر</div>` : ''}
+        ${m.status === 'upcoming' ? `<div class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/90 text-white text-xs font-bold">قريباً</div>` : ''}
+        <div class="absolute top-3 left-3 px-2 py-1 rounded-md text-xs font-bold text-green-400 border" style="background: rgba(0,0,0,0.6); border-color: rgba(34,197,94,0.3)">${m.quality[0] || '720p'}</div>
+      </div>
+      <div class="p-4">
+        <div class="text-xs text-gray-400 mb-1">${m.league}</div>
+        <h3 class="text-base font-bold text-white mb-2">${m.team1} <span style="color: #22c55e">vs</span> ${m.team2}</h3>
+        <div class="flex items-center justify-between text-xs text-gray-500">
+          <span>${new Date(m.start_time).toLocaleDateString('ar-SA')}</span>
+          ${m.viewers ? `<span style="color: #22c55e">${m.viewers.toLocaleString('ar-SA')} مشاهد</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========== WATCH ==========
+let currentMatch = null;
+let currentHls = null;
+let usingBackup = false;
+
+function watchMatch(id) {
+  currentMatch = getMatchById(id);
+  if (!currentMatch) return;
+  usingBackup = false;
+  showPage('watch');
+  setupVideo();
+}
+
+function setupVideo() {
+  const video = document.getElementById('main-video');
+  const loading = document.getElementById('video-loading');
+  const errorDiv = document.getElementById('video-error');
+  const backupBtn = document.getElementById('btn-backup');
+  const info = document.getElementById('match-info');
+
+  loading.classList.remove('hidden');
+  errorDiv.classList.add('hidden');
+  backupBtn.classList.toggle('hidden', !currentMatch.stream_url_backup);
+
+  info.innerHTML = `
+    <div class="flex items-center gap-3 mb-3">
+      <span class="text-sm" style="color: #22c55e">${currentMatch.league}</span>
+      ${currentMatch.status === 'live' ? '<span class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-red-400 border border-red-500/30" style="background: rgba(239,68,68,0.1)"><span class="live-dot"></span>مباشر الآن</span>' : ''}
+    </div>
+    <h1 class="text-2xl font-black text-white mb-2">${currentMatch.team1} <span style="color: #22c55e">vs</span> ${currentMatch.team2}</h1>
+    ${currentMatch.description ? `<p class="text-gray-400 text-sm mb-3">${currentMatch.description}</p>` : ''}
+    <div class="flex items-center gap-4 text-sm text-gray-500">
+      <span>${new Date(currentMatch.start_time).toLocaleString('ar-SA')}</span>
+      ${currentMatch.viewers ? `<span style="color: #22c55e">${currentMatch.viewers.toLocaleString('ar-SA')} مشاهد</span>` : ''}
+    </div>
+  `;
+
+  const src = usingBackup && currentMatch.stream_url_backup ? currentMatch.stream_url_backup : currentMatch.stream_url;
+
+  if (currentMatch.stream_type === 'iframe') {
+    video.style.display = 'none';
+    loading.classList.add('hidden');
+    const wrapper = document.getElementById('video-wrapper');
+    let iframe = wrapper.querySelector('iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.className = 'w-full';
+      iframe.style.aspectRatio = '16/9';
+      iframe.allowFullscreen = true;
+      wrapper.appendChild(iframe);
+    }
+    iframe.src = src;
+    iframe.style.display = 'block';
+    return;
+  }
+
+  video.style.display = 'block';
+  const iframe = document.getElementById('video-wrapper').querySelector('iframe');
+  if (iframe) iframe.style.display = 'none';
+
+  if (currentMatch.stream_type === 'hls' && Hls.isSupported()) {
+    if (currentHls) currentHls.destroy();
+    currentHls = new Hls({ maxBufferLength: 30, enableWorker: true, lowLatencyMode: true });
+    currentHls.loadSource(src);
+    currentHls.attachMedia(video);
+    currentHls.on(Hls.Events.MANIFEST_PARSED, () => {
+      loading.classList.add('hidden');
+      video.play().catch(() => {});
+    });
+    currentHls.on(Hls.Events.ERROR, (e, data) => {
+      if (data.fatal) showVideoError();
+    });
+  } else {
+    video.src = src;
+    video.onloadedmetadata = () => {
+      loading.classList.add('hidden');
+      video.play().catch(() => {});
+    };
+    video.onerror = showVideoError;
+  }
+
+  video.ontimeupdate = () => {
+    if (video.duration) {
+      document.getElementById('video-progress').style.width = (video.currentTime / video.duration * 100) + '%';
+      document.getElementById('video-time').textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
+    }
+  };
+}
+
+function showVideoError() {
+  document.getElementById('video-loading').classList.add('hidden');
+  document.getElementById('video-error').classList.remove('hidden');
+}
+
+function retryVideo() {
+  setupVideo();
+}
+
+function useBackup() {
+  usingBackup = true;
+  setupVideo();
+}
+
+function togglePlay() {
+  const video = document.getElementById('main-video');
+  if (video.paused) { video.play(); document.getElementById('icon-play').classList.add('hidden'); document.getElementById('icon-pause').classList.remove('hidden'); }
+  else { video.pause(); document.getElementById('icon-play').classList.remove('hidden'); document.getElementById('icon-pause').classList.add('hidden'); }
+}
+
+function toggleMute() {
+  const video = document.getElementById('main-video');
+  video.muted = !video.muted;
+}
+
+function seekVideo(e) {
+  const video = document.getElementById('main-video');
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pos = (e.clientX - rect.left) / rect.width;
+  video.currentTime = pos * video.duration;
+}
+
+function toggleFullscreen() {
+  const wrapper = document.getElementById('video-wrapper');
+  if (!document.fullscreenElement) wrapper.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+function formatTime(s) {
+  if (!isFinite(s)) return '00:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+
+// ========== ADMIN ==========
+let isAdmin = localStorage.getItem('ynw_admin') === 'true';
+
+function adminLogin() {
+  const pass = document.getElementById('admin-password').value;
+  if (pass === 'ynwbox2024') {
+    isAdmin = true;
+    localStorage.setItem('ynw_admin', 'true');
+    document.getElementById('login-error').classList.add('hidden');
+    renderAdmin();
+  } else {
+    document.getElementById('login-error').classList.remove('hidden');
+  }
+}
+
+function adminLogout() {
+  isAdmin = false;
+  localStorage.removeItem('ynw_admin');
+  renderAdmin();
+}
+
+function renderAdmin() {
+  document.getElementById('admin-login').classList.toggle('hidden', isAdmin);
+  document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
+  if (isAdmin) renderAdminList();
+}
+
+function renderAdminList() {
+  const list = document.getElementById('admin-matches-list');
+  const all = getAllMatches();
+  if (!all.length) { list.innerHTML = '<p class="text-gray-500 text-center py-8">لا توجد مباريات</p>'; return; }
+
+  list.innerHTML = all.map(m => `
+    <div class="glass rounded-xl p-4 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" style="background: #12121a">
+        ${m.thumbnail ? `<img src="${m.thumbnail}" class="w-full h-full object-cover rounded-lg">` : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>'}
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 class="text-white font-bold text-sm truncate">${m.team1} vs ${m.team2}</h4>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-xs text-gray-500">${m.league}</span>
+          ${m.status === 'live' ? '<span class="text-xs text-red-400">● مباشر</span>' : ''}
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="watchMatch('${m.id}')" class="p-2 rounded-lg hover:bg-white/5 text-gray-400">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button onclick="deleteMatch('${m.id}')" class="p-2 rounded-lg hover:bg-red-500/20 text-red-400">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showAddForm() {
+  document.getElementById('add-form').classList.remove('hidden');
+  document.getElementById('form-time').value = new Date().toISOString().slice(0, 16);
+}
+
+function hideAddForm() {
+  document.getElementById('add-form').classList.add('hidden');
+}
+
+function saveMatch() {
+  const newMatch = {
+    id: 'local-' + Date.now(),
+    title: document.getElementById('form-team1').value + ' vs ' + document.getElementById('form-team2').value,
+    team1: document.getElementById('form-team1').value,
+    team2: document.getElementById('form-team2').value,
+    league: document.getElementById('form-league').value,
+    stream_url: document.getElementById('form-stream').value,
+    stream_url_backup: document.getElementById('form-backup').value,
+    stream_type: document.getElementById('form-type').value,
+    status: document.getElementById('form-status').value,
+    start_time: document.getElementById('form-time').value,
+    quality: document.getElementById('form-quality').value.split(',').map(s => s.trim()).filter(Boolean),
+    thumbnail: document.getElementById('form-thumb').value,
+    description: document.getElementById('form-desc').value,
+    viewers: 0,
+  };
+
+  matches.push(newMatch);
+  localStorage.setItem('ynw_matches', JSON.stringify(matches));
+  hideAddForm();
+  renderAdminList();
+  alert('تم حفظ المباراة!');
+}
+
+function deleteMatch(id) {
+  if (!confirm('هل أنت متأكد من حذف هذه المباراة؟')) return;
+  matches = matches.filter(m => m.id !== id);
+  localStorage.setItem('ynw_matches', JSON.stringify(matches));
+  renderAdminList();
+}
+
+// ========== INIT ==========
+renderHome();
+</script>
+</body>
+</html>
